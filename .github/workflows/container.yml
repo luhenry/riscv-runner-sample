@@ -1,0 +1,34 @@
+name: Hello RISC-V
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  docker:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-24.04-riscv, ubuntu-24.04]
+    steps:
+      - run: docker ps
+      - run: docker run --rm ubuntu:24.04 uname -m
+      - run: |
+          docker run --rm --interactive ubuntu:24.04 bash <<EOF
+          apt-get update
+          apt-get install -y --no-install-recommends bind9-dnsutils
+          nslookup google.com
+          EOF
+
+  container:
+    runs-on: ${{ matrix.runs-on }}
+    container:
+      image: ubuntu:24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-24.04, ubuntu-24.04-riscv]
+    steps:
+      - run: apt update
+      - run: apt install -y curl

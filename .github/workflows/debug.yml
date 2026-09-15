@@ -1,0 +1,115 @@
+name: Hello RISC-V
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  debug:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-24.04-riscv, ubuntu-24.04, ubuntu-24.04-arm]
+    env:
+      GITHUB_CONTEXT: ${{ toJson(github) }}
+      # RUNNER_CONTEXT: ${{ toJson(runner) }}
+    steps:
+      - run: id
+      - run: cat /etc/passwd
+      - run: cat /etc/group-
+      - run: sudo ls -alh /etc/sudoers.d
+      - run: sudo tail -n 100 /etc/sudoers /etc/sudoers.d/runner || true
+      - run: lsmod
+      - run: ps aux --forest
+      - run: cat /etc/hostname
+      - run: printenv
+      - run: dpkg --list
+      - run: apt-mark showmanual
+      - run: ls -alh /usr/local
+      - run: ls -alh /usr/local/bin
+      - run: ls -alh /opt/hostedtoolcache
+      - run: ls -alh /opt/hostedtoolcache/Python || true
+      - run: ls -alh /opt/hostedtoolcache/Python/*.*.* || true
+      - run: ls -alh /opt/hostedtoolcache/Python/*.*.*/{x64,riscv64}/bin || true
+      - run: readelf -d /opt/hostedtoolcache/Python/3.{12,13,14}.*/{x64,riscv64}/bin/python3 || true
+      - run: sudo find /opt -maxdepth 5 -printf '%M %u:%g %p\n'
+      - run: find /home/runner -maxdepth 5
+      - run: find /home/runner/actions-runner/cached/2.*.*/externals -maxdepth 3 || true
+      - run: >-
+          which
+          mvn
+          ant
+          gradle
+          java
+          python3
+          python
+          ninja
+          gh
+          kubectl
+          ninja
+          rustc
+          rustup
+          cargo
+          go
+      - run: >-
+          which
+          mvn
+          ant
+          gradle
+          java
+          python3
+          python
+          ninja
+          gh
+          kubectl
+          ninja
+          rustc
+          rustup
+          cargo
+          go
+          | xargs realpath
+      - run: >-
+          which
+          mvn
+          ant
+          gradle
+          java
+          python3
+          python
+          ninja
+          gh
+          kubectl
+          ninja
+          rustc
+          rustup
+          cargo
+          go
+          | xargs realpath
+          | xargs dpkg -S || true
+
+  debug-container:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on:
+          - ubuntu-24.04-riscv
+          - ubuntu-24.04
+    container: ubuntu:24.04
+    env:
+      GITHUB_CONTEXT: ${{ toJson(github) }}
+      # RUNNER_CONTEXT: ${{ toJson(runner) }}
+    steps:
+      - run: printenv
+      - run: dpkg --list
+      - run: find /__e -maxdepth 3
+      - name: Setup Python 3.12
+        uses: actions/setup-python@main
+        with:
+          python-version: 3.12
+          mirror: ${{ matrix.runs-on == 'ubuntu-24.04-riscv' && 'https://raw.githubusercontent.com/riseproject-dev/python-versions/main' || '' }}
+      - run: |
+          apt-get update
+          apt-get install -y --no-install-recommends bind9-dnsutils
+          nslookup google.com

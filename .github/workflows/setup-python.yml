@@ -1,0 +1,53 @@
+name: Hello RISC-V
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  setup-python:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-24.04-riscv, ubuntu-24.04]
+        python-version:
+          - "3"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.13.0-rc.3"
+          - "3.13.12"
+          - "3.14"
+          - "3.14.2"
+        freethreaded:
+          - false
+        include:
+          - runs-on: ubuntu-24.04-riscv
+            python-version: "3.14.2"
+            freethreaded: true
+          - runs-on: ubuntu-24.04-riscv
+            python-version: "3.14.2"
+            freethreaded: false
+          - runs-on: ubuntu-24.04
+            python-version: "3.14.2"
+            freethreaded: true
+          - runs-on: ubuntu-24.04
+            python-version: "3.14.2"
+            freethreaded: false
+    steps:
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@main
+        with:
+          python-version: ${{ matrix.python-version }}
+          freethreaded: ${{ matrix.freethreaded || false }}
+          mirror: ${{ matrix.runs-on == 'ubuntu-24.04-riscv' && 'https://raw.githubusercontent.com/riseproject-dev/python-versions/main' || '' }}
+      - run: which python
+      - run: python --version
+      - run: which pip
+      - run: file $(which pip)
+      - run: file $(realpath $(which pip))
+      - run: cat $(realpath $(which pip))
+      - run: cat $(realpath $(which pip)) | grep -qE '^#\!/opt/hostedtoolcache/Python/${{ matrix.python-version }}.*/.*/bin/python'
+      - run: pip --version
